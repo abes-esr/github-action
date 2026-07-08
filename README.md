@@ -53,8 +53,8 @@ jobs:
     # Appel du workflow centralisé (utiliser @main ou une version tagguée spécifique)
     uses: abes-esr/github-action/.github/workflows/buildx-pubtodockerhub.yml@main
     with:
-      dockerhub_image_prefix: "abesesr/mon-application"
-      docker_tag_target: "runtime-stage" # Optionnel : Cible multi-stage dans le Dockerfile
+      dockerhub_image_prefix: "abesesr/theses"
+      docker_tag_target: "api-recherche" # Cible multi-stage dans le Dockerfile & suffixe du tag de l'image
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
