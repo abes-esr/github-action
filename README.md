@@ -60,6 +60,15 @@ jobs:
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 ```
 
+⚠️ Lors de l'utilisation de ces workflows réutilisables dans un nouveau dépôt projet, veillez à bien vérifier et adapter les points suivants :
+
+- **Nom du Stage dans le `Dockerfile` (`AS <stage_name>`)** :
+  - Si vous utilisez le multi-stage build, assurez-vous que la directive `FROM ... AS <stage_name>` de votre `Dockerfile` correspond exactement à la valeur passée dans le paramètre `docker_tag_target` (ex : `api-recherche`, `batch-dump`). Le nom du stage sera aussi utilisé pour construire le tag de l'image finale (ex: `abesesr/theses:main-api-recherche`, `abesesr/theses:develop-batch-dump`).
+- **Image DockerHub (`dockerhub_image_prefix`)** :
+  - Vérifiez que le nom de l'image spécifié dans `dockerhub_image_prefix` correspond bien au dépôt cible de l'image souhaité sur DockerHub (ex: `abesesr/theses`).
+- **Secrets de connexion** :
+  - Assurez-vous que les secrets `DOCKERHUB_USERNAME` et `DOCKERHUB_TOKEN` sont bien configurés dans les secrets de votre dépôt applicatif.
+
 ### 2. Exemple : Release pour un projet Java Maven (`java-create-release.yml`)
 
 Créez un fichier `.github/workflows/release.yml` dans votre dépôt projet :
@@ -88,6 +97,15 @@ jobs:
     secrets:
       TOKEN_GITHUB_FOR_GITHUB_ACTION: ${{ secrets.TOKEN_GITHUB_FOR_GITHUB_ACTION }}
 ```
+
+⚠️ Lors de l'utilisation de ces workflows réutilisables dans un nouveau dépôt projet, veillez à bien vérifier et adapter les points suivants :
+
+- **Droits du Token GitHub (`TOKEN_GITHUB_FOR_GITHUB_ACTION`)** :
+  - Le token passé en secret doit disposer des privilèges d'écriture (`contents: write`) sur le dépôt pour pouvoir pousser les commits de version, créer et pousser le tag git de la release, et créer la release GitHub.
+- **Fichiers de configuration et de version** :
+  - **Java** : Assurez-vous que le projet contient bien un fichier `pom.xml` valide à la racine (et dans ses sous-modules si applicables).
+  - **Node.js** : Assurez-vous que le projet contient un fichier `package.json` valide.
+  - **README.md** : Le fichier `README.md` de votre projet doit contenir une ligne contenant le motif `Version: X.Y.Z` (ex: `Version: 1.0.0`) si vous souhaitez qu'elle soit mise à jour automatiquement lors de la release.
 
 ---
 
