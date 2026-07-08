@@ -112,4 +112,4 @@ jobs:
 ## 📌 Bonnes Pratiques
 
 - **Versioning des workflows** : Lorsque vous référencez un workflow centralisé, préférez pointer vers une branche stable (ex: `@main`) pour éviter les régressions inattendues lors de modifications du dépôt central.
-- **Secrets** : Les secrets (comme `DOCKERHUB_TOKEN` ou `TOKEN_GITHUB_FOR_GITHUB_ACTION`) doivent être configurés dans les paramètres du dépôt applicatif appelant et transmis explicitement au workflow appelé via le bloc `secrets:`.
+- **Secrets** : Les secrets (comme `DOCKERHUB_TOKEN` ou `TOKEN_GITHUB_FOR_GITHUB_ACTION`) peuvent être partagés à l'organisation afin de réutiliser plus facilement ces workflows.
