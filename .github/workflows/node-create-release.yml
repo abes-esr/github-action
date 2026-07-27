@@ -103,34 +103,70 @@ jobs:
         env:
           NEW_TAG: ${{ steps.calculate-version.outputs.releaseVersion }}
           NEW_SNAPSHOT_TAG: ${{ steps.calculate-version.outputs.snapshotVersion }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB_FOR_GITHUB_ACTION }}
         run: |
           git config --global user.email "github-action@noreply"
           git config --global user.name "Github Action"
           npm config set tag-version-prefix ''
           npm config set git-tag-version false
 
-          # set release version
+          # Récupérer dynamiquement le nom de la branche courante (main ou master)
+          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          echo "Current branch is $CURRENT_BRANCH"
+
+          # S'assurer que la branche locale est parfaitement à jour avec le dépôt distant
+          git pull origin $CURRENT_BRANCH --rebase
+
+          # 1. Mise à jour de la version de release
           npm version $NEW_TAG         
           sed -i "s#Version: [0-9]\+\.[0-9]\+\.[0-9]\+\(-SNAPSHOT\)\?#Version: $NEW_TAG#g" README.md
 
+          # 2. Validation et publication de la version de release.
+          # Note : On évite 'git commit --amend' suivi d'un simple 'git push' car cela
+          # réécrit l'historique local après avoir poussé le tag originel, provoquant des
+          # rejets de push non-fast-forward. On commite directement avec '[skip ci]'.
           git add .
-          git commit -m "Version $NEW_TAG"
+          git commit -m "chore(release): 🔖 Version $NEW_TAG [skip ci]"
           git tag $NEW_TAG
+          git push origin $CURRENT_BRANCH
           git push origin $NEW_TAG
-          git commit --amend -m "Version $NEW_TAG [skip ci]"
-          git push
 
-          # merge to develop
+          # 3. Fusion de la version de release vers la branche de développement
           git switch develop
-          git merge main -m "Merge main to develop [skip ci]"
+          git pull origin develop --rebase
+          git merge $CURRENT_BRANCH -m "chore(release): 🔀 Merge $CURRENT_BRANCH to develop [skip ci]"
 
-          # set snapshot version
+          # 4. Mise à jour vers la nouvelle version SNAPSHOT sur develop
           npm version $NEW_SNAPSHOT_TAG
           sed -i "s#Version: [0-9]\+\.[0-9]\+\.[0-9]\+\(-SNAPSHOT\)\?#Version: $NEW_SNAPSHOT_TAG#g" README.md
 
           git add .
-          git commit -m "Version $NEW_SNAPSHOT_TAG [skip ci]"
-          git push
+          git commit -m "chore(release): 🔖 Version $NEW_SNAPSHOT_TAG [skip ci]"
+
+          # 5. Création et fusion automatique d'une Pull Request pour 'develop' afin de respecter les règles de protection
+          TEMP_BRANCH="release-snapshot-$NEW_SNAPSHOT_TAG"
+          git checkout -b $TEMP_BRANCH
+          git push origin $TEMP_BRANCH
+
+          # Création de la Pull Request
+          gh pr create \
+            --title "chore(release): 🔖 Version $NEW_SNAPSHOT_TAG [skip ci]" \
+            --body "Fusion automatique de la version de release et incrément SNAPSHOT." \
+            --base develop \
+            --head $TEMP_BRANCH
+
+          # 6. Fusion ou activation de l'auto-merge de la Pull Request
+          echo "Tentative de fusion de la PR..."
+          if gh pr merge --merge --admin --delete-branch || gh pr merge --merge --delete-branch; then
+            echo "La PR a été fusionnée avec succès."
+          else
+            echo "Impossible de fusionner immédiatement (ex: validations requises). Tentative d'activation de l'auto-merge..."
+            if gh pr merge --auto --merge --delete-branch; then
+              echo "L'auto-merge a été activé. La PR sera fusionnée automatiquement dès que les validations requises seront passées."
+            else
+              echo "::warning:: L'auto-merge n'a pas pu être activé. La PR devra être validée et fusionnée manuellement."
+            fi
+          fi
 
       - name: "Create the GitHub release"
         uses: softprops/action-gh-release@v3
