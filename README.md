@@ -24,6 +24,7 @@ Chaque workflow est conçu pour être réutilisable (`on: workflow_call`).
 - **`buildx-pubtodockerhub.yml`** : Compile et publie une image Docker multi-plateforme sur DockerHub avec Docker Buildx.
 - **`java-create-release.yml`** : Calcule les versions (SemVer), met à jour les `pom.xml` Maven et le `README.md`, crée les tags Git, effectue les commits/pushes et publie la release officielle GitHub pour un projet Java.
 - **`node-create-release.yml`** : Similaire à la release Java, mais adaptée pour les projets Node.js (met à jour `package.json` et le `README.md`).
+- **`python-create-release.yml`** : Similaire aux releases Java/Node.js, mais adaptée pour les projets Python gérés avec Poetry (met à jour `pyproject.toml` et le `README.md`).
 
 ---
 
@@ -105,6 +106,7 @@ jobs:
 - **Fichiers de configuration et de version** :
   - **Java** : Assurez-vous que le projet contient bien un fichier `pom.xml` valide à la racine (et dans ses sous-modules si applicables).
   - **Node.js** : Assurez-vous que le projet contient un fichier `package.json` valide.
+  - **Python** : Assurez-vous que le projet contient bien un fichier `pyproject.toml` valide avec Poetry (ou contenant le champ `version`).
   - **README.md** : Le fichier `README.md` de votre projet doit contenir une ligne contenant le motif `Version: X.Y.Z` (ex: `Version: 1.0.0`) si vous souhaitez qu'elle soit mise à jour automatiquement lors de la release.
 
 ---
