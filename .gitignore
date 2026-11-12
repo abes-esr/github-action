@@ -1,0 +1,18 @@
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Eclipse
+.bin/
+.classpath
+.project
+.settings/
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
